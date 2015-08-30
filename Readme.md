@@ -2,7 +2,7 @@ consistent-hash
 ===============
 
 This is a dependency-free javascript-only implementation of
-[https://en.wikipedia.org/wiki/Consistent_hashing](consistent hashing) hash
+[consistent hashing](https://en.wikipedia.org/wiki/Consistent_hashing) hash
 ring.  Uses strings for hash keys, and hashes using the PJW hash algorithm.
 
 This implementation is not the fastest (though pretty fast), but has a nice key
