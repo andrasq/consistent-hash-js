@@ -67,14 +67,6 @@ ConsistentHash.prototype = {
         return this
     },
 
-    locateNext:
-    function locateNext( node, offset ) {
-        var i, ix = this._nodes.indexOf(node)
-        if (ix < 0) return null
-// WRITEME: return the array of nodes following the control points of node
-        return []
-    },
-
     _copy:
     function _copy( o ) {
         if (Array.isArray(o)) {
@@ -131,8 +123,15 @@ ConsistentHash.prototype = {
      */
     get:
     function get( name ) {
-        if (!this._keys) this._buildKeys()
         if (!this.keyCount) return null
+        var index = this._locate(name)
+        return this._keyMap[this._keys[index]]
+    },
+
+    // return the index of the node that handles resource name
+    _locate:
+    function _locate( name ) {
+        if (!this._keys) this._buildKeys()
         var h = this._hash(name)
 
         // the hash lsbyte too closely tracks the input strings, eg a
@@ -146,91 +145,47 @@ ConsistentHash.prototype = {
         // Using (hash mod _range) also seems to counter it, esp for small _range
         h = h % this._range
 
-        var index = this._absearch(this._keys, h)
-//console.log("AR: idx", key.toString(16), this.keyCount, index)
-        return this._keyMap[this._keys[index]]
+        return this._absearch(this._keys, h)
     },
 
-    /**
-     * return the first n nodes in the hash ring after name
-     */
-/***
-// FIXME: BROKEN: do not return n distinct, return the nodes of the next N control points for fall-through handling
-    getMany:
-    function getMany( name, n ) {
-        if (!this._keys) this._buildKeys()
-        var key = this._hash(name)
-        var index = this._absearch(this._keys, key)
-        if (index < 0) return []
-        var i, foundKeys = {}, foundNodes = [], node
-        function returnNodeAt( i ) {
-            if (!foundKeys[this._keys[i]]) {
-                foundKeys[this._keys[i]] = true
-                foundNodes.push(this._keyMap[this._keys[i]])
-            }
-        }
-        for (i=index; foundNodes.length < n && i<this._keys.length; i++) returnNodeAt(i)
-        for (i=0; foundNodes.length < n && i<index; i++) returnNodeAt(i)
-        return foundNodes
-    },
-***/
-
-    // 24-bit PJW string hash
+    // 24-bit PJW string hash variant, see https://en.wikipedia.org/wiki/PJW_hash_function
+    // pjw seems to work better than crc24 for the test cases in the unit tests
     _hash:
     function _pjwHash(s) {
         var len = s.length
         var g, h = 0
+        // TODO: speed up the hash computation for long strings
+        // the hash does not have to be perfect, just well distributed
         for (var i=0; i<len; i++) {
             h = (h << 4) + s.charCodeAt(i)
-            g = h & 0xf000000           // isolate high 4 bits
+            g = h & 0xff000000          // isolate high 4 bits and overflow
+            // PJW grabs bits 28..31 and xors them into the high nybble bits 4-7
+            // we grab bits 24-28 and xor them into the low nybble bits 0-3,
+            // seems to result in a less poor distribution taken mod 2^N, N>3.
             if (g) {
-                h ^= g                  // clear high 4 bits
+                h &= ~g                 // clear high 4 bits
                 h ^= (g >>> 24)         // xor high 4 bits into low byte
             }
         }
         // for well distributed input, h has a good distribution in the lsb`s
         // but for correlated input eg /a[0-9]+/ it is skewed and caller must fix
-        return h
-
-        // h has a good distribution in the lsb`s,
-        // need to move that to the msb`s, else all short strings
-        // will map to bin[0].
-// AR: do not flip if returning mod
-//        var flip8 = this._flip8Map
-//        h = (flip8[(h) & 0xff] << 16) | (flip8[(h >>> 8) & 0xff] << 8) | (flip8[(h >>> 16) & 0xff])
-// the lsbyte too closely tracks the input strings, eg a
-// trailing decimal suffix 'a1234' skews the hash distribution.
-// Drop a few of the least significant bits to offset this.
-//return h >>> 3
+        // Taking h % prime seems to work well, esp for smallish primes (1009, 10007)
+        // Conversely, taking h % 2^N (N>3) results in a very skewed distribution.
         return h
     },
 
-    // compute an unsigned integer hash for the resource name
+    // 24-bit CRC hash variant, see https://www.cs.hmc.edu/~geoff/classes/hmc.cs070.200101/homework10/hashfuncs.html
     _hash2:
     function _crcHash( s ) {
         // rotate left 5 bits, xor in each new byte
         // http://www.cs.hmc.edu/~geoff/classes/hmc.cs070.200101/homework10/hashfuncs.html
         var len = s.length
         var g, h = 0
-        // TODO: speed up the hash computation for long strings
-        // the hash does not have to be perfect, just well distributed
         for (var i=0; i<len; i++) {
-            // 20-bit hash
-            //g = h & 0xf8000
-            //h = (((h & ~0xf8000) << 5) | (g >>> 15)) ^ s.charCodeAt(i)
             // 24-bit hash
             g = h & 0xf80000
             h = (((h & ~0xf80000) << 5) | (g >>> 19)) ^ s.charCodeAt(i)
-            // 31-bit hash
-            //g = h & 0x78000000
-            //h = (((h & ~0x7800000) << 5) | (g >>> 26)) ^ s.charCodeAt(i)
         }
-        // TODO: h has a good distribution in the lsb`s,
-        // need to move that to the msb`s, else all short strings
-        // will map to bin[0].  Extend 20-bit hash to 24-bit range
-        var flip8 = this._flip8Map
-        h = (flip8[(h) & 0xff] << 16) | (flip8[(h >>> 8) & 0xff] << 8) | (flip8[(h >>> 16) & 0xff])
-// FIXME: distribution is not as uniform as one would expect...
         return h
     },
 

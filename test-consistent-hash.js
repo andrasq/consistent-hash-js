@@ -183,26 +183,21 @@ module.exports = {
         'should distribute hashes fairly uniformly': function(t) {
             // note: 16 bins sync up with ascii [0-9] suffix and break distribution
             var h, i, bins = []
-            for (i=0; i<127; i++) bins[i] = 0
+            for (i=0; i<20; i++) bins[i] = 0
             for (i=0; i<10000; i++) {
                 // well-distributed input hashes great.  use 
                 //h = this.cut._hash((Math.random() * 0x10000 >>> 0).toString(16))
                 //h = this.cut._hash(numBase26(i))
                 // non-uniform input eg /a[0-9]+/ is a better test
-                h = this.cut._hash('a' + i)
+                h = this.cut._hash('a' + i + i + i + i)
                 //h = this.cut._hash('a' + i.toString(16))
                 // note: be sure to mod with a relative prime, else will not be uniform
                 bins[h % bins.length] += 1
             }
-//console.log("AR: _hash bins", bins)
-            // check that all bins are close to all other bins
-            for (i=0; i<bins.length; i++) {
-                for (j=0; j<bins.length; j++) {
-                    if (i === j) continue
-                    t.ok(bins[i] * 2 >= bins[j])
-                    t.ok(bins[j] * 2 >= bins[i])
-                }
-            }
+            bins.sort(function(a,b){ return a - b })
+//console.log("AR: _hash bins", bins.slice(0, 5), bins.slice(-5))
+            // hash distribution should be within 2x across all bins
+            t.ok(bins[0] * 2 >=  bins[bins.length - 1])
             t.done()
         },
     },

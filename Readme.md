@@ -3,7 +3,7 @@ consistent-hash
 
 This is a dependency-free javascript-only implementation of
 [consistent hashing](https://en.wikipedia.org/wiki/Consistent_hashing) hash
-ring.  Uses strings for hash keys, and hashes using the PJW hash algorithm.
+ring.  Uses strings for hash keys, and hashes using a PJW hash variant.
 
 This implementation is not the fastest (though pretty fast), but has a nice key
 distribution.
@@ -60,6 +60,12 @@ Returns `hr`.
 
 Locate the node that handles the named resource.  Returns a node previously
 added with `add()`, or `null` if no nodes.
+
+
+Todo
+----
+
+- lookup function to find the successor node(s) on the hash ring, to push work
 
 
 Related Work
