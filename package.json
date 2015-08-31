@@ -1,6 +1,6 @@
 {
   "name": "consistent-hash",
-  "version": "0.9.4-pre2",
+  "version": "0.9.4-pre3",
   "description": "consistent hash ring",
   "license": "Apache-2.0",
   "repository": {
@@ -22,6 +22,7 @@
     "Andras",
     "consistent",
     "hash",
+    "hashing",
     "hash ring"
   ],
   "dependencies": {

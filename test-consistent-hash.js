@@ -21,6 +21,19 @@ module.exports = {
         done()
     },
 
+    'package': {
+        'should be valid json': function(t) {
+            var json = require('./package.json')
+            t.done()
+        },
+
+        'should export the class': function(t) {
+            var index = require('./index.js')
+            t.equal(index, ConsistentHash)
+            t.done()
+        },
+    },
+
     'class': {
         'add should associate control points with the node': function(t) {
             this.cut.add("a")
