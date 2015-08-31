@@ -10,10 +10,10 @@ distribution.
 
         var ConsistentHash = require('consistent-hash')
         var hr = new ConsistentHash()
-        hr.add('node1')
-        hr.add('node2')
+        hr.add('server1')
+        hr.add('server2')
 
-        var node = hr.get('resourceName')
+        var serverToUse = hr.get('resourceName')
 
 
 Installation
@@ -65,11 +65,11 @@ added with `add()`, or `null` if no nodes.
 Todo
 ----
 
-- lookup function to find the successor node(s) on the hash ring, to push work
+- lookup function `getMany` to also find the successor node(s) on the hash ring
 
 
 Related Work
 ------------
 
-- [hashring](https://npmjs.org/package/hashring) - fast C++ hashring with poor key distribution
+- [hashring](https://npmjs.org/package/hashring) - fast C++ hashring with poor key distribution and slow O(n^2) setup
 
