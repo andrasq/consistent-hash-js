@@ -131,7 +131,7 @@ ConsistentHash.prototype = {
     // return the index of the node that handles resource name
     _locate:
     function _locate( name ) {
-        if (name.length === undefined) name = "" + name
+        if (typeof name !== 'string') name = "" + name
         if (!this._keys) this._buildKeys()
         var h = this._hash(name)
 
