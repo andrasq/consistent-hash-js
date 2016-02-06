@@ -56,16 +56,14 @@ Remove all instances of this node from the hash ring and free its control
 points.  Freed control points may get allocated to newly added nodes.
 Returns `hr`.
 
-### hr.get( resourceName )
+### hr.get( resourceName [,count] )
 
 Locate the node that handles the named resource.  Returns a node previously
 added with `add()`, or `null` if no nodes.
 
-
-Todo
-----
-
-- lookup function `getMany` to also find the successor node(s) on the hash ring
+If a `count` is specified, it returns an array of `count` distinct nodes;
+first the one that handles the named resource, then the following closest
+nodes around the hash ring.
 
 
 Related Work

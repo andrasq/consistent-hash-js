@@ -22,21 +22,7 @@ function ConsistentHash( options ) {
 
     options = options || {}
     if (options.range) this._range = options.range
-
-    if (this._flip8Map[1] != 0x80) {
-        var i, k
-        for (i=0; i<256; i++) {
-            function flipit(b1) {
-                var k, bit, b2 = 0
-                for (k=0; k<8; k++) {
-                    bit = 1 << k
-                    if (b1 & bit) b2 |= (1 << (7 - k))
-                }
-                return b2
-            }
-            this._flip8Map[i] = flipit(i)
-        }
-    }
+    if (options.controlPoints) this._controlPointsCount = options.controlPoints
 }
 
 ConsistentHash.prototype = {
@@ -46,8 +32,8 @@ ConsistentHash.prototype = {
     // sorted keys array will be regenerated whenever set to falsy
     _keys: null,                // array of sorted control points
     _range: 1009,               // hash ring capacity.  Smaller values (1k) distribute better (100k)
-    _flip8Map: new Array(256),  // flip the bits in byte, msb to lsb
-    _flip4Map: [0, 8, 4, 12, 2, 10, 6, 14, 1, 9, 5, 13, 3, 11, 7, 15],
+                                // ok values: 1009, 5003, 9127,
+    _controlPointsCount: 1,     // number of control points to create per node
 
     /**
      * add n instances of the node at random positions around the hash ring
@@ -55,11 +41,11 @@ ConsistentHash.prototype = {
     add:
     function add( node, n, points ) {
         var i, key
-        n = n || 1
         if (Array.isArray(points)) points = this._copy(points)
-        else points = this._makeControlPoints(n)
+        else points = this._makeControlPoints(n || this._controlPointsCount)
         this._nodes.push(node)
         this._nodeKeys.push(points)
+        n = points.length
         for (i=0; i<n; i++) this._keyMap[points[i]] = node
         this._keys = null
         this.keyCount += n
@@ -122,10 +108,27 @@ ConsistentHash.prototype = {
      * return the first node in the hash ring after name
      */
     get:
-    function get( name ) {
+    function get( name, count ) {
+        if (count) return this._getMany(name, count);
         if (!this.keyCount) return null
         var index = this._locate(name)
         return this._keyMap[this._keys[index]]
+    },
+
+    _getMany:
+    function _getMany( name, n ) {
+        if (!this.keyCount) return null
+        var index = this._locate(name)
+        var node, nodes = [];
+        for (var i=index; i<this.keyCount && nodes.length < n; i++) {
+            node = this._keyMap[this._keys[i]];
+            if (nodes.indexOf(node) < 0) nodes.push(node);
+        }
+        for ( ; i<index && nodes.length < n; i++) {
+            node = this._keyMap[this._keys[i]];
+            if (nodes.indexOf(node) < 0) nodes.push(node);
+        }
+        return nodes;
     },
 
     // return the index of the node that handles resource name
@@ -201,6 +204,7 @@ ConsistentHash.prototype = {
             else j = mid
         }
         // faster to linear search once the location is narrowed to gap items
+        // this is the `approximate binary` in the `_absearch`
         for ( ; i<len; i++) if (array[i] >= key) return i
         return array.length === 0 ? -1 : 0
     },

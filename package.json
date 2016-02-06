@@ -1,6 +1,6 @@
 {
   "name": "consistent-hash",
-  "version": "0.9.4",
+  "version": "1.0.0",
   "description": "consistent hash ring",
   "license": "Apache-2.0",
   "repository": {

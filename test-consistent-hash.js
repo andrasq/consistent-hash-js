@@ -150,6 +150,15 @@ module.exports = {
             t.done()
         },
 
+        'get should return count distinct nodes': function(t) {
+            this.cut.add("a", 1, [10])
+            this.cut.add("b", 1, [20, 30])
+            t.deepEqual(this.cut.get("test", 3), ["a", "b"])
+            this.cut.add("c", 1, [15])
+            t.deepEqual(this.cut.get("test", 3), ["a", "c", "b"])
+            t.done()
+        },
+
         'remove should unmap the node': function(t) {
             this.cut.add("a")
             t.ok(this.cut._nodeKeys[0])
@@ -163,29 +172,12 @@ module.exports = {
             this.cut.get("a")
             this.cut.remove("a")
             t.ok(!this.cut._nodeKeys[0])
+            t.ok(!this.cut.get("a"))
             t.done()
         },
     },
 
     '_hash': {
-        '_flip8Map should flip bits in byte': function(t) {
-            var i, b, flip4map = [0, 8, 4, 12, 2, 10, 6, 14, 1, 9, 5, 13, 3, 11, 7, 15]
-            for (i=0; i<256; i++) {
-                b = (flip4map[i & 0xf] << 4) | (flip4map[(i >> 4) & 0xf])
-                t.equal(this.cut._flip8Map[i], b)
-            }
-            t.done()
-        },
-
-        '_flip8Map should reverse position of one-bit numbers': function(t) {
-            var i, bit
-            for (i=0; i<8; i++) {
-                bit = 1 << i
-                t.ok(this.cut._flip8Map[bit] == 1 << (7 - i))
-            }
-            t.done()
-        },
-
         'should compute different hashes for similar strings': function(t) {
             var h1 = this.cut._hash("a1")
             var h2 = this.cut._hash("b1")
@@ -274,23 +266,27 @@ module.exports = {
             for (i=0; i<this.data.length; i++) cut.add(nodes[i])
             cut.get("a")
             t.done()
+            // 600k/s
         },
 
         'time 100k _hash': function(t) {
             for (var i=0; i<100000; i++) cut._hash("abc")
             t.done()
+            // 36m/s
         },
 
         'time 100k _absearch': function(t) {
             var i, j
-            for (j=0; j<10; j++) for (i=0; i<10000; i++) cut._absearch(this.data, this.data[i])
+            for (j=0; j<10; j++) for (i=0; i<this.data.length; i++) cut._absearch(this.data, this.data[i])
             t.done()
+            // 10m/s
         },
 
         'time 100k get': function(t) {
             var i, j, node
-            for (j=0; j<10; j++) for (i=0; i<10000; i++) node = cut.get(this.data[i])
+            for (j=0; j<10; j++) for (i=0; i<this.data.length; i++) node = cut.get(this.data[i])
             t.done()
+            // 3m/s
         },
     },
 }
