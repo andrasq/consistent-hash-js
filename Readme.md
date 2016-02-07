@@ -43,7 +43,7 @@ Properties:
 ### hr.add( node [,weight] [,points] )
 
 Register a node as also managing the resource.  The node's share of the
-resources will be proportionate to its weight.  The default weight is 1,
+resources will be proportionate to its weight.  The default weight is 40,
 and control points are randomly created between 0 and range - 1.  Returns `hr`.
 
 Adding the same node more than once increases its weight.

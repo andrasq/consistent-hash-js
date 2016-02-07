@@ -22,7 +22,7 @@ function ConsistentHash( options ) {
 
     options = options || {}
     if (options.range) this._range = options.range
-    if (options.weight || options.controlPoints) this._controlPointsCount = options.weight || options.controlPoints
+    if (options.weight || options.controlPoints) this._weightDefault = options.weight || options.controlPoints
 }
 
 ConsistentHash.prototype = {
@@ -33,7 +33,7 @@ ConsistentHash.prototype = {
     _keys: null,                // array of sorted control points
     _range: 100003,             // hash ring capacity.  Smaller values (1k) distribute better (100k)
                                 // ok values: 1009:1, 5003, 9127, 1000003:97
-    _controlPointsCount: 40,    // number of control points to create per node
+    _weightDefault: 40,         // number of control points to create per node
 
     /**
      * add n instances of the node at random positions around the hash ring
@@ -42,7 +42,7 @@ ConsistentHash.prototype = {
     function add( node, n, points ) {
         var i, key
         if (Array.isArray(points)) points = this._copy(points)
-        else points = this._makeControlPoints(n || this._controlPointsCount)
+        else points = this._makeControlPoints(n || this._weightDefault)
         this._nodes.push(node)
         this._nodeKeys.push(points)
         n = points.length
@@ -95,11 +95,13 @@ ConsistentHash.prototype = {
             var keys = this._nodeKeys[ix]
             this._nodes[ix] = this._nodes[this._nodes.length - 1]
             this._nodes.length -= 1
+            for (var j = 0; j < this._nodeKeys[ix].length; j++) this._keyMap[this._nodeKeys[ix][j]] = undefined;
             this._nodeKeys[ix] = this._nodeKeys[this._nodeKeys.length - 1]
             this._nodeKeys.length -= 1
             this._keys = null
             this.keyCount -= keys.length
             this.nodeCount -= 1
+            ix -= 1
         }
         return this
     },

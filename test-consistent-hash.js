@@ -51,7 +51,7 @@ module.exports = {
             this.cut.add("a")
             this.cut.add("a", 7)
             this.cut.get("x")
-            t.equal(this.cut._keys.length, this.cut._controlPointsCount + 7)
+            t.equal(this.cut._keys.length, this.cut._weightDefault + 7)
             t.done()
         },
 
