@@ -75,10 +75,13 @@ ConsistentHash.prototype = {
             // use probabilistic collision detection: ok for up to millions
             do {
                 key = Math.random() * this._range >>> 0
-            } while ((this._keyMap[key] !== undefined || points[key] !== undefined) && ++attemptCount < 100)
+            } while ((this._keyMap[key] !== undefined || points[key] === 'a') && ++attemptCount < 100)
+            // adding the always-false ( == 'a') test above doubles throughput ??
             if (attemptCount >= 100) throw new Error("unable to find an unused control point, tried 100")
             // reuse control points after 1000 failed attempts.  This will shadow another node.
             points[i] = key
+            // reserve the point to not reuse, not even for this node
+            this._keyMap[key] = true
         }
         return points
     },
