@@ -1,13 +1,14 @@
 var ConsistentHash = require('./index.js')
 var nbins = [2, 3, 5, 10, 16, 17, 20, 32, 40, 50, 100, 127, 128, 256, 257]
+var nbins = [4, 10, 100];
 
 function distribute( data, nbins ) {
     var i, hr = new ConsistentHash()
 
     // add nbins nodes distributed uniformly around the ring
     // note: random control points will badly skew the distribution
-    for (i=0; i<nbins; i++) hr.add(i, 1, [(i / nbins * hr._range) >>> 0])
-    //for (i=0; i<nbins; i++) hr.add(i)
+    //for (i=0; i<nbins; i++) hr.add(i, 1, [(i / nbins * hr._range) >>> 0])
+    for (i=0; i<nbins; i++) hr.add(i)
 
     // create bins to count the number of times each node showed up
     var bins = new Array(nbins)
@@ -31,7 +32,10 @@ console.log(fn.toString())
     for (var j=0; j<nbins.length; j++) {
         var bins = distribute(data, nbins[j])
         bins.sort(function(a, b) { return a - b })
-console.log("AR: %d bins", bins.length, bins.slice(0, 10), bins.slice(-10))
+        var empty = 0;
+        for (var i=0; i<bins.length; i++) if (!bins[i]) empty += 1
+        empty = (empty / bins.length * 100) >>> 0
+console.log("AR: %d nodes %d%% empty", bins.length, empty, bins.slice(0, 10), "...", bins.slice(-10))
         //t.ok(bins[0] * 10 > bins[bins.length - 1])
     }
 }

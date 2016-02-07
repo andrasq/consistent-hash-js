@@ -51,7 +51,7 @@ module.exports = {
             this.cut.add("a")
             this.cut.add("a", 7)
             this.cut.get("x")
-            t.equal(this.cut._keys.length, 8)
+            t.equal(this.cut._keys.length, this.cut._controlPointsCount + 7)
             t.done()
         },
 
@@ -249,7 +249,7 @@ module.exports = {
 
     'timings': {
         before: function(done) {
-            cut = new ConsistentHash()
+            cut = new ConsistentHash({ range: 1000003 })
             this.data = new Array()
             done.done ? done.done() : done()
         },

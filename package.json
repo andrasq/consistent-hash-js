@@ -1,7 +1,7 @@
 {
   "name": "consistent-hash",
   "version": "1.0.0",
-  "description": "consistent hash ring",
+  "description": "js consistent hash ring",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
@@ -12,11 +12,8 @@
     "name": "Andras",
     "url": "http://github.com/andrasq"
   },
-  "engines": {
-    "node": "*"
-  },
   "scripts": {
-    "test": "qunit test-consistent-hash.js"
+    "test": "qnit test-consistent-hash.js"
   },
   "keywords": [
     "Andras",
@@ -28,6 +25,6 @@
   "dependencies": {
   },
   "devDependencies": {
-    "node-qunit": "0.6.3"
+    "qnit": "0.11.0"
   }
 }

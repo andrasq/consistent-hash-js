@@ -31,9 +31,9 @@ ConsistentHash.prototype = {
     _keyMap: null,              // control point to node map
     // sorted keys array will be regenerated whenever set to falsy
     _keys: null,                // array of sorted control points
-    _range: 1009,               // hash ring capacity.  Smaller values (1k) distribute better (100k)
-                                // ok values: 1009, 5003, 9127,
-    _controlPointsCount: 1,     // number of control points to create per node
+    _range: 100003,             // hash ring capacity.  Smaller values (1k) distribute better (100k)
+                                // ok values: 1009:1, 5003, 9127, 1000003:97
+    _controlPointsCount: 40,    // number of control points to create per node
 
     /**
      * add n instances of the node at random positions around the hash ring
@@ -75,9 +75,9 @@ ConsistentHash.prototype = {
             // use probabilistic collision detection: ok for up to millions
             do {
                 key = Math.random() * this._range >>> 0
-            } while ((this._keyMap[key] !== undefined || points[key] !== undefined) && ++attemptCount < 10)
-            //if (attemptCount >= 1000) throw new Error("unable to find an unused control point, tried 1000 times")
-            // reuse control points after 10 attempts to find an unused one
+            } while ((this._keyMap[key] !== undefined || points[key] !== undefined) && ++attemptCount < 100)
+            if (attemptCount >= 100) throw new Error("unable to find an unused control point, tried 100")
+            // reuse control points after 1000 failed attempts.  This will shadow another node.
             points[i] = key
         }
         return points
@@ -137,6 +137,9 @@ ConsistentHash.prototype = {
         if (typeof name !== 'string') name = "" + name
         if (!this._keys) this._buildKeys()
         var h = this._hash(name)
+
+        // scaling up the hash distributes better for larger _range values
+        h = h << 5
 
         // the hash lsbyte too closely tracks the input strings, eg a
         // trailing decimal suffix 'a1234' skews the hash distribution
