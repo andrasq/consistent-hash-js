@@ -22,7 +22,7 @@ function ConsistentHash( options ) {
 
     options = options || {}
     if (options.range) this._range = options.range
-    if (options.controlPoints) this._controlPointsCount = options.controlPoints
+    if (options.weight || options.controlPoints) this._controlPointsCount = options.weight || options.controlPoints
 }
 
 ConsistentHash.prototype = {

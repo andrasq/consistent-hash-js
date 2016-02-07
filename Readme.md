@@ -28,9 +28,9 @@ API
 
 Options:
 
-- `range` - hash ring control point range, default 100003.  Use a prime number.
-- `controlPoints` - the number of control points to create by default for each
-  added node, default 40.
+- `range` - hash ring control point modulo range, default 100003.  Use a prime number.
+- `weight` - the default number of control points to create for each node added,
+  default 40.
 
 The number of nodes supported is `range / controlPoints`, default 2500.  For
 10x more nodes, use range 1,000,003.
