@@ -146,15 +146,7 @@ ConsistentHash.prototype = {
         // scaling up the hash distributes better for larger _range values
         h = h << 5
 
-        // the hash lsbyte too closely tracks the input strings, eg a
-        // trailing decimal suffix 'a1234' skews the hash distribution
-        // because ascii 0-9 is always in the range 0000-1001
-        // Dropping a few of the least significant bits counters this,
-        // but makes 'a1', 'a2', 'a3' hash to the same node (however, it
-        // does not skip nodes 10-16 for strings /a[0-9]+/)
-        //h = h >>> 3
-
-        // Using (hash mod _range) also seems to counter it, esp for small _range
+        // the mod counters the lsbyte too closely tracking the input suffix
         h = h % this._range
 
         return this._absearch(this._keys, h)
