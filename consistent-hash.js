@@ -193,6 +193,15 @@ ConsistentHash.prototype = {
         return h
     },
 
+    // djb2: good string hash: http://www.cse.yorku.ca/~oz/hash.html
+    //   hash(i) = hash(i - 1) * 33 ^ str[i];
+    // (adapted from qpubs)
+    _hash3:
+    function _djb2( s ) {
+        for (var h=0, len=s.length, i=0; i<len; i++) h = ((h * 33) ^ s.charCodeAt(i)) & 0xffffff;
+        return h
+    },
+
     // binary search the sorted array for the location of the key
     // returns the index of the first value >= key, or 0 if key > max(array)
     _absearch:
