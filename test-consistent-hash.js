@@ -150,10 +150,12 @@ module.exports = {
 
         'get should return count distinct nodes': function(t) {
             this.cut.add("a", 1, [10])
-            this.cut.add("b", 1, [20, 30])
-            t.deepEqual(this.cut.get("test", 3), ["a", "b"])
+            this.cut.add("b", 1, [7, 20, 30])
+            t.stub(this.cut, '_absearch').returns(2)
+            t.deepEqual(this.cut.get("test", 3), ["b", "a"])
+
             this.cut.add("c", 1, [15])
-            t.deepEqual(this.cut.get("test", 3), ["a", "c", "b"])
+            t.deepEqual(this.cut.get("test", 3), ["c", "b", "a"])
             t.done()
         },
 

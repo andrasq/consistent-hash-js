@@ -163,7 +163,7 @@ ConsistentHash.prototype = {
             node = this._keyMap[this._keys[i]];
             if (nodes.indexOf(node) < 0) nodes.push(node);
         }
-        for ( ; i<index && nodes.length < n; i++) {
+        for (var i=0; i<index && nodes.length < n; i++) {
             node = this._keyMap[this._keys[i]];
             if (nodes.indexOf(node) < 0) nodes.push(node);
         }
