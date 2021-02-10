@@ -12,9 +12,6 @@
     "name": "Andras",
     "url": "http://github.com/andrasq"
   },
-  "scripts": {
-    "test": "qnit test-consistent-hash.js"
-  },
   "keywords": [
     "Andras",
     "consistent",
@@ -22,9 +19,18 @@
     "hashing",
     "hash ring"
   ],
+  "files": ["LICENSE", "Readme.md", "consistent-hash.js", "test-consistent-hash.js"],
+  "readme": "see Readme.md in the repo",
+
   "dependencies": {
   },
   "devDependencies": {
-    "qnit": "0.11.0"
+    "qnit": "0.30.0"
+  },
+
+  "scripts": {
+    "test": "qnit test-consistent-hash.js",
+    "coverage": "nyc -r text -r lcov npm test",
+    "clean": "rm -rf .nyc_output coverage"
   }
 }
