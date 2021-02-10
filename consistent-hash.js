@@ -1,7 +1,7 @@
 /**
  * consistent-hash -- simple, quick, efficient hash ring (consistent hashing)
  *
- * Copyright (C) 2014-2015 Andras Radics
+ * Copyright (C) 2014-2015,2021 Andras Radics
  * Licensed under the Apache License, Version 2.0
  *
  * - O(n log n) insert for any number of nodes, not O(n^2)
@@ -23,6 +23,7 @@ function ConsistentHash( options ) {
     options = options || {}
     if (options.range) this._range = options.range
     if (options.weight || options.controlPoints) this._weightDefault = options.weight || options.controlPoints
+    if (options.distribution === 'uniform') this._uniform = true
 }
 
 ConsistentHash.prototype = {
@@ -34,6 +35,8 @@ ConsistentHash.prototype = {
     _range: 100003,             // hash ring capacity.  Smaller values (1k) distribute better (100k)
                                 // ok values: 1009:1, 5003, 9127, 1000003:97
     _weightDefault: 40,         // number of control points to create per node
+    _uniform: false,            // distribute nodes uniformly around the ring
+    _needKeyMap: false,         // whether need to initialize on first use
 
     /**
      * add n instances of the node at random positions around the hash ring
@@ -42,11 +45,12 @@ ConsistentHash.prototype = {
     function add( node, n, points ) {
         var i, key
         if (Array.isArray(points)) points = this._copy(points)
+        else if (this._uniform) { _needKeyMap = true; points = new Array(n || this._weightDefault) }
         else points = this._makeControlPoints(n || this._weightDefault)
         this._nodes.push(node)
         this._nodeKeys.push(points)
         n = points.length
-        for (i=0; i<n; i++) this._keyMap[points[i]] = node
+        if (points[0] !== undefined) for (i=0; i<n; i++) this._keyMap[points[i]] = node
         this._keys = null
         this.keyCount += n
         this.nodeCount += 1
@@ -84,6 +88,13 @@ ConsistentHash.prototype = {
             this._keyMap[key] = true
         }
         return points
+    },
+
+    /*
+     * uniformly distribute n control points for each node around the ring
+     */
+    _buildKeyMap:
+    function _buildKeyMap( n ) {
     },
 
     /**
@@ -139,6 +150,8 @@ ConsistentHash.prototype = {
     // return the index of the node that handles resource name
     _locate:
     function _locate( name ) {
+        if (this._needKeyMap) this._buildKeyMap(this._weightDefault);
+
         if (typeof name !== 'string') name = "" + name
         if (!this._keys) this._buildKeys()
         var h = this._hash(name)

@@ -31,6 +31,8 @@ Options:
 - `range` - hash ring control point modulo range, default 100003.  Use a prime number.
 - `weight` - the default number of control points to create for each node added,
   default 40.
+- `distribution` - node arrangement around the ring, for when no control points provided.
+  One of `"random"` or `"uniform"`, default "random". 
 
 The number of nodes supported is `range / controlPoints`, default 2500.  For
 10x more nodes, use range 1,000,003.
@@ -67,6 +69,13 @@ added with `add()`, or `null` if no nodes.
 If a `count` is specified, it returns an array of `count` distinct nodes;
 first the one that handles the named resource, then the following closest
 nodes around the hash ring.
+
+
+Changelog
+---------
+
+- 1.1.0 - `options.distribution`
+- 1.0.2 - 2016 version
 
 
 Related Work
