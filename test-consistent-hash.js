@@ -175,6 +175,26 @@ module.exports = {
             t.ok(!this.cut.get("a"))
             t.done()
         },
+
+        'edge cases': {
+            'throws if unable to make control points': function(t) {
+                var uut = new ConsistentHash({ range: 10 })
+                t.throws(function() { uut.add('node1', 11) }, /unable to .* control point/)
+                t.done()
+            },
+
+            'get returns null if no nodes': function(t) {
+                var uut = new ConsistentHash()
+                t.strictEqual(uut.get('foo'), null)
+                t.done()
+            },
+
+            'get with count returns null if no nodes': function(t) {
+                var uut = new ConsistentHash()
+                t.strictEqual(uut.get('foo', 3), null)
+                t.done()
+            },
+        },
     },
 
     '_hash': {
