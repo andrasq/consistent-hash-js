@@ -24,7 +24,7 @@ function ConsistentHash( options ) {
 
     options = options || {}
     if (options.range) this._range = options.range
-    if (options.weight || options.controlPoints) this._weightDefault = options.weight || options.controlPoints
+    if (options.controlPoints || options.weight) this._weightDefault = options.controlPoints || options.weight
     if (options.distribution === 'uniform') this._uniform = true
 }
 
