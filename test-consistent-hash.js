@@ -266,6 +266,23 @@ module.exports = {
             uut.get('foo')
             t.done()
         },
+
+        'should rebuild map after remove': function(t) {
+            var uut = new ConsistentHash({ range: 24, weight: 4, distribution: 'uniform' })
+            uut.add('node1')
+            uut.add('node2')
+            uut.add('node3')
+            uut.get('foo')
+            t.equal(Object.keys(uut._keyMap).length, 12, '3-node map has 12 keys')
+            var map1 = uut._keyMap
+            uut.remove('node2')
+            t.deepEqual(uut._keyMap, null)
+            uut.get('foo')
+            t.equal(Object.keys(uut._keyMap).length, 8, 'rebuilt map has 8 keys')
+            t.contains(map1, uut._keyMap)
+            for (var k in uut._keyMap) t.notEqual(uut._keyMap[k], 'node2', 'node2 was deleted')
+            t.done()
+        },
     },
 
     'timings': {

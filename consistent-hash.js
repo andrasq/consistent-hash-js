@@ -133,12 +133,13 @@ ConsistentHash.prototype = {
             this._nodeKeys[ix] = this._nodeKeys[this._nodeKeys.length - 1]
             this._nodeKeys.length -= 1
             this._keys = null
-            this.keyCount -= keys.length
+            this._needKeyMap = true
+            this._keyMap = null
+            // TODO: deleting a node does not rebalance its uniform-distributed control points
             this.nodeCount -= 1
+            this.keyCount -= keys.length
             ix -= 1
         }
-        this._needKeyMap = true
-        this._keys = null
         return this
     },
 
