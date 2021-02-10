@@ -11,8 +11,6 @@ function numBase26(n) {
     return ret;
 }
 
-// FIXME: setUp/beforeEach should run before each same-level test!  *not* sub-tests
-// hack: until setUp is fixed to run only before shared tests...
 var cut = null
 
 module.exports = {
@@ -28,7 +26,7 @@ module.exports = {
         },
 
         'should export the class': function(t) {
-            var index = require('./index.js')
+            var index = require('./')
             t.equal(index, ConsistentHash)
             t.done()
         },
@@ -152,10 +150,12 @@ module.exports = {
 
         'get should return count distinct nodes': function(t) {
             this.cut.add("a", 1, [10])
-            this.cut.add("b", 1, [20, 30])
-            t.deepEqual(this.cut.get("test", 3), ["a", "b"])
+            this.cut.add("b", 1, [7, 20, 30])
+            t.stub(this.cut, '_absearch').returns(2)
+            t.deepEqual(this.cut.get("test", 3), ["b", "a"])
+
             this.cut.add("c", 1, [15])
-            t.deepEqual(this.cut.get("test", 3), ["a", "c", "b"])
+            t.deepEqual(this.cut.get("test", 3), ["c", "b", "a"])
             t.done()
         },
 
@@ -174,6 +174,26 @@ module.exports = {
             t.ok(!this.cut._nodeKeys[0])
             t.ok(!this.cut.get("a"))
             t.done()
+        },
+
+        'edge cases': {
+            'throws if unable to make control points': function(t) {
+                var uut = new ConsistentHash({ range: 10 })
+                t.throws(function() { uut.add('node1', 11) }, /unable to .* control point/)
+                t.done()
+            },
+
+            'get returns null if no nodes': function(t) {
+                var uut = new ConsistentHash()
+                t.strictEqual(uut.get('foo'), null)
+                t.done()
+            },
+
+            'get with count returns null if no nodes': function(t) {
+                var uut = new ConsistentHash()
+                t.strictEqual(uut.get('foo', 3), null)
+                t.done()
+            },
         },
     },
 
@@ -243,6 +263,46 @@ module.exports = {
             ]
             this.cut._buildKeys()
             t.deepEqual(this.cut._keys, [10, 11, 12, 20, 21, 22, 30, 31, 32])
+            t.done()
+        },
+    },
+
+    '_buildKeyMap': {
+        'should distribute points uniformly': function(t) {
+            var uut = new ConsistentHash({ range: 24, weight: 4, distribution: 'uniform' })
+            uut.add('node1')
+            uut.add('node2')
+            uut.add('node3')
+            uut.get('foo')
+            t.deepEqual(uut._nodes, ['node1', 'node2', 'node3'])
+            t.deepEqual(uut._nodeKeys, [[1, 7, 13, 19], [3, 9, 15, 21], [5, 11, 17, 23]])
+            t.deepEqual(uut._keys, [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23])
+            t.done()
+        },
+
+        'should distribute lookups uniformly': function(t) {
+            var uut = new ConsistentHash({ distribution: 'uniform' })
+            uut.add('node1')
+            uut.add('node2')
+            uut.add('node3')
+            uut.get('foo')
+            t.done()
+        },
+
+        'should rebuild map after remove': function(t) {
+            var uut = new ConsistentHash({ range: 24, weight: 4, distribution: 'uniform' })
+            uut.add('node1')
+            uut.add('node2')
+            uut.add('node3')
+            uut.get('foo')
+            t.equal(Object.keys(uut._keyMap).length, 12, '3-node map has 12 keys')
+            var map1 = uut._keyMap
+            uut.remove('node2')
+            t.deepEqual(uut._keyMap, null)
+            uut.get('foo')
+            t.equal(Object.keys(uut._keyMap).length, 8, 'rebuilt map has 8 keys')
+            t.contains(map1, uut._keyMap)
+            for (var k in uut._keyMap) t.notEqual(uut._keyMap[k], 'node2', 'node2 was deleted')
             t.done()
         },
     },

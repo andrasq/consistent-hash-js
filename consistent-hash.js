@@ -1,7 +1,7 @@
 /**
  * consistent-hash -- simple, quick, efficient hash ring (consistent hashing)
  *
- * Copyright (C) 2014-2015 Andras Radics
+ * Copyright (C) 2014-2015,2021 Andras Radics
  * Licensed under the Apache License, Version 2.0
  *
  * - O(n log n) insert for any number of nodes, not O(n^2)
@@ -11,6 +11,8 @@
  * Based on my PHP version, see lib/Quick/Data/ConsistentHash.php
  * in https://github.com/andrasq/quicklib/
  */
+
+'use strict'
 
 function ConsistentHash( options ) {
     this._nodes = new Array()
@@ -22,7 +24,8 @@ function ConsistentHash( options ) {
 
     options = options || {}
     if (options.range) this._range = options.range
-    if (options.weight || options.controlPoints) this._weightDefault = options.weight || options.controlPoints
+    if (options.controlPoints || options.weight) this._weightDefault = options.controlPoints || options.weight
+    if (options.distribution === 'uniform') this._uniform = true
 }
 
 ConsistentHash.prototype = {
@@ -34,6 +37,8 @@ ConsistentHash.prototype = {
     _range: 100003,             // hash ring capacity.  Smaller values (1k) distribute better (100k)
                                 // ok values: 1009:1, 5003, 9127, 1000003:97
     _weightDefault: 40,         // number of control points to create per node
+    _uniform: false,            // distribute nodes uniformly around the ring
+    _needKeyMap: false,         // whether need to initialize on first use
 
     /**
      * add n instances of the node at random positions around the hash ring
@@ -41,36 +46,29 @@ ConsistentHash.prototype = {
     add:
     function add( node, n, points ) {
         var i, key
-        if (Array.isArray(points)) points = this._copy(points)
+        if (Array.isArray(points)) points = this._concat2(new Array(), points)
+        else if (this._uniform) { this._needKeyMap = true; this._keys = null; points = new Array(n || this._weightDefault) }
         else points = this._makeControlPoints(n || this._weightDefault)
         this._nodes.push(node)
         this._nodeKeys.push(points)
         n = points.length
-        for (i=0; i<n; i++) this._keyMap[points[i]] = node
+        if (points[0] !== undefined) for (i=0; i<n; i++) this._keyMap[points[i]] = node
         this._keys = null
         this.keyCount += n
         this.nodeCount += 1
         return this
     },
 
-    _copy:
-    function _copy( o ) {
-        if (Array.isArray(o)) {
-            var i, ret = new Array(o.length)
-            for (i=0; i<o.length; i++) ret[i] = o[i]
-            return ret
-        }
-        else {
-            var k, ret = {}
-            for (k in o) ret[k] = o[k]
-            return ret
-        }
+    _concat2:
+    function _concat2( target, array ) {
+        for (var i = 0; i < array.length; i++) target.push(array[i])
+        return target
     },
 
     _makeControlPoints:
     function _makeControlPoints( n ) {
         var attemptCount = 0
-        var i, points = new Array(n)
+        var i, key, points = new Array(n)
         for (i=0; i<n; i++) {
             // use probabilistic collision detection: ok for up to millions
             do {
@@ -84,6 +82,39 @@ ConsistentHash.prototype = {
             this._keyMap[key] = true
         }
         return points
+    },
+
+    /*
+     * distribute n control points around the ring for each node that needs it
+     */
+    _buildKeyMap:
+    function _buildKeyMap( n ) {
+        var pointslist = this._nodeKeys
+        var nodeCount = 0
+
+        // FIXME: generate the n*m control points, then distribute them among the m nodes
+        // Currently we ignore the per-node weight, and use the instance weight
+
+        // count how many nodes need control points distributed
+        var nodeCount = 0
+        for (var i = 0; i < this.nodeCount; i++) if (this._nodeKeys[i][0] === undefined) nodeCount += 1
+
+        // determine how many points we need and their spacing and position
+        var pointCount = nodeCount * this._weightDefault
+        var step = this._range / pointCount
+
+        this._keyMap = {}
+        for (var i = 0; i < this._nodeKeys.length; i++) {
+            var keys = this._nodeKeys[i]
+            if (keys[0] === undefined) {
+                var offset = step * i + step / 2
+                keys.length = 0
+                for (var j = 0; j < this._weightDefault; j++) keys[j] = Math.round(offset + (step * nodeCount) * j)
+            }
+            // also update the keyMap lookup mapping control points to nodes
+            var node = this._nodes[i]
+            for (var j = 0; j < keys.length; j++) this._keyMap[keys[j]] = node
+        }
     },
 
     /**
@@ -102,8 +133,11 @@ ConsistentHash.prototype = {
             this._nodeKeys[ix] = this._nodeKeys[this._nodeKeys.length - 1]
             this._nodeKeys.length -= 1
             this._keys = null
-            this.keyCount -= keys.length
+            this._needKeyMap = true
+            this._keyMap = null
+            // TODO: deleting a node does not rebalance its uniform-distributed control points
             this.nodeCount -= 1
+            this.keyCount -= keys.length
             ix -= 1
         }
         return this
@@ -129,7 +163,7 @@ ConsistentHash.prototype = {
             node = this._keyMap[this._keys[i]];
             if (nodes.indexOf(node) < 0) nodes.push(node);
         }
-        for ( ; i<index && nodes.length < n; i++) {
+        for (var i=0; i<index && nodes.length < n; i++) {
             node = this._keyMap[this._keys[i]];
             if (nodes.indexOf(node) < 0) nodes.push(node);
         }
@@ -139,6 +173,8 @@ ConsistentHash.prototype = {
     // return the index of the node that handles resource name
     _locate:
     function _locate( name ) {
+        if (this._needKeyMap) this._buildKeyMap(this._weightDefault);
+
         if (typeof name !== 'string') name = "" + name
         if (!this._keys) this._buildKeys()
         var h = this._hash(name)
@@ -178,6 +214,7 @@ ConsistentHash.prototype = {
         return h
     },
 
+/**
     // 24-bit CRC hash variant, see https://www.cs.hmc.edu/~geoff/classes/hmc.cs070.200101/homework10/hashfuncs.html
     _hash2:
     function _crcHash( s ) {
@@ -192,6 +229,18 @@ ConsistentHash.prototype = {
         }
         return h
     },
+**/
+
+/**
+    // djb2: good string hash: http://www.cse.yorku.ca/~oz/hash.html
+    //   hash(i) = hash(i - 1) * 33 ^ str[i];
+    // (adapted from qpubs)
+    _hash3:
+    function _djb2( s ) {
+        for (var h=0, len=s.length, i=0; i<len; i++) h = ((h * 33) ^ s.charCodeAt(i)) & 0xffffff;
+        return h
+    },
+**/
 
     // binary search the sorted array for the location of the key
     // returns the index of the first value >= key, or 0 if key > max(array)
