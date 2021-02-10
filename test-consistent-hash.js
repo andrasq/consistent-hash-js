@@ -11,8 +11,6 @@ function numBase26(n) {
     return ret;
 }
 
-// FIXME: setUp/beforeEach should run before each same-level test!  *not* sub-tests
-// hack: until setUp is fixed to run only before shared tests...
 var cut = null
 
 module.exports = {
@@ -28,7 +26,7 @@ module.exports = {
         },
 
         'should export the class': function(t) {
-            var index = require('./index.js')
+            var index = require('./')
             t.equal(index, ConsistentHash)
             t.done()
         },

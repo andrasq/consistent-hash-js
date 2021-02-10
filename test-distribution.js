@@ -1,4 +1,4 @@
-var ConsistentHash = require('./index.js')
+var ConsistentHash = require('./')
 var nbins = [2, 3, 5, 10, 16, 17, 20, 32, 40, 50, 100, 127, 128, 256, 257]
 var nbins = [4, 10, 100];
 

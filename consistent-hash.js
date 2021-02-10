@@ -12,6 +12,8 @@
  * in https://github.com/andrasq/quicklib/
  */
 
+'use strict'
+
 function ConsistentHash( options ) {
     this._nodes = new Array()
     this._nodeKeys = new Array()
@@ -44,7 +46,7 @@ ConsistentHash.prototype = {
     add:
     function add( node, n, points ) {
         var i, key
-        if (Array.isArray(points)) points = this._copy(points)
+        if (Array.isArray(points)) points = this._concat2(new Array(), points)
         else if (this._uniform) { _needKeyMap = true; points = new Array(n || this._weightDefault) }
         else points = this._makeControlPoints(n || this._weightDefault)
         this._nodes.push(node)
@@ -57,24 +59,16 @@ ConsistentHash.prototype = {
         return this
     },
 
-    _copy:
-    function _copy( o ) {
-        if (Array.isArray(o)) {
-            var i, ret = new Array(o.length)
-            for (i=0; i<o.length; i++) ret[i] = o[i]
-            return ret
-        }
-        else {
-            var k, ret = {}
-            for (k in o) ret[k] = o[k]
-            return ret
-        }
+    _concat2:
+    function _concat2( target, array ) {
+        for (var i = 0; i < array.length; i++) target.push(array[i]);
+        return target;
     },
 
     _makeControlPoints:
     function _makeControlPoints( n ) {
         var attemptCount = 0
-        var i, points = new Array(n)
+        var i, key, points = new Array(n)
         for (i=0; i<n; i++) {
             // use probabilistic collision detection: ok for up to millions
             do {

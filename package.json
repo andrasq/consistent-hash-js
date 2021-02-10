@@ -7,7 +7,7 @@
     "type": "git",
     "url": "git://github.com/andrasq/consistent-hash-js"
   },
-  "main": "index.js",
+  "main": "consistent-hash.js",
   "author": {
     "name": "Andras",
     "url": "http://github.com/andrasq"
