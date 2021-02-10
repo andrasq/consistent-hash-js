@@ -245,6 +245,29 @@ module.exports = {
         },
     },
 
+    '_buildKeyMap': {
+        'should distribute points uniformly': function(t) {
+            var uut = new ConsistentHash({ range: 24, weight: 4, distribution: 'uniform' })
+            uut.add('node1')
+            uut.add('node2')
+            uut.add('node3')
+            uut.get('foo')
+            t.deepEqual(uut._nodes, ['node1', 'node2', 'node3'])
+            t.deepEqual(uut._nodeKeys, [[1, 7, 13, 19], [3, 9, 15, 21], [5, 11, 17, 23]])
+            t.deepEqual(uut._keys, [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23])
+            t.done()
+        },
+
+        'should distribute lookups uniformly': function(t) {
+            var uut = new ConsistentHash({ distribution: 'uniform' })
+            uut.add('node1')
+            uut.add('node2')
+            uut.add('node3')
+            uut.get('foo')
+            t.done()
+        },
+    },
+
     'timings': {
         before: function(done) {
             cut = new ConsistentHash({ range: 1000003 })

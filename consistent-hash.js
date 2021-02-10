@@ -47,7 +47,7 @@ ConsistentHash.prototype = {
     function add( node, n, points ) {
         var i, key
         if (Array.isArray(points)) points = this._concat2(new Array(), points)
-        else if (this._uniform) { _needKeyMap = true; points = new Array(n || this._weightDefault) }
+        else if (this._uniform) { this._needKeyMap = true; this._keys = null; points = new Array(n || this._weightDefault) }
         else points = this._makeControlPoints(n || this._weightDefault)
         this._nodes.push(node)
         this._nodeKeys.push(points)
@@ -61,8 +61,8 @@ ConsistentHash.prototype = {
 
     _concat2:
     function _concat2( target, array ) {
-        for (var i = 0; i < array.length; i++) target.push(array[i]);
-        return target;
+        for (var i = 0; i < array.length; i++) target.push(array[i])
+        return target
     },
 
     _makeControlPoints:
@@ -85,10 +85,36 @@ ConsistentHash.prototype = {
     },
 
     /*
-     * uniformly distribute n control points for each node around the ring
+     * distribute n control points around the ring for each node that needs it
      */
     _buildKeyMap:
     function _buildKeyMap( n ) {
+        var pointslist = this._nodeKeys
+        var nodeCount = 0
+
+        // FIXME: generate the n*m control points, then distribute them among the m nodes
+        // Currently we ignore the per-node weight, and use the instance weight
+
+        // count how many nodes need control points distributed
+        var nodeCount = 0
+        for (var i = 0; i < this.nodeCount; i++) if (this._nodeKeys[i][0] === undefined) nodeCount += 1
+
+        // determine how many points we need and their spacing and position
+        var pointCount = nodeCount * this._weightDefault
+        var step = this._range / pointCount
+
+        this._keyMap = {}
+        for (var i = 0; i < this._nodeKeys.length; i++) {
+            var keys = this._nodeKeys[i]
+            if (keys[0] === undefined) {
+                var offset = step * i + step / 2
+                keys.length = 0
+                for (var j = 0; j < this._weightDefault; j++) keys[j] = Math.round(offset + (step * nodeCount) * j)
+            }
+            // also update the keyMap lookup mapping control points to nodes
+            var node = this._nodes[i]
+            for (var j = 0; j < keys.length; j++) this._keyMap[keys[j]] = node
+        }
     },
 
     /**
@@ -111,6 +137,8 @@ ConsistentHash.prototype = {
             this.nodeCount -= 1
             ix -= 1
         }
+        this._needKeyMap = true
+        this._keys = null
         return this
     },
 

@@ -28,7 +28,7 @@ API
 
 Options:
 
-- `range` - hash ring control point modulo range, default 100003.  Use a prime number.
+- `range` - hash ring control point modulo range, default 100003.
 - `weight` - the default number of control points to create for each node added, default 40.
 - `distribution` - node arrangement around the ring, for when no control points provided.
   One of `"random"` or `"uniform"`, default "random". 
