@@ -129,7 +129,9 @@ ConsistentHash.prototype = {
             var keys = this._nodeKeys[ix]
             this._nodes[ix] = this._nodes[this._nodes.length - 1]
             this._nodes.length -= 1
-            for (var j = 0; j < this._nodeKeys[ix].length; j++) this._keyMap[this._nodeKeys[ix][j]] = undefined;
+            if (this._keyMap) {
+                for (var j = 0; j < this._nodeKeys[ix].length; j++) this._keyMap[this._nodeKeys[ix][j]] = undefined;
+            }
             this._nodeKeys[ix] = this._nodeKeys[this._nodeKeys.length - 1]
             this._nodeKeys.length -= 1
             this._keys = null
