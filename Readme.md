@@ -73,6 +73,7 @@ nodes around the hash ring.
 Changelog
 ---------
 
+- 1.1.1 - do not access unset _keyMap
 - 1.1.0 - `options.distribution`, fix multi-node get() that wraps around 0
 - 1.0.2 - 2016 version
 
