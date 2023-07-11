@@ -1,7 +1,7 @@
 /**
  * consistent-hash -- simple, quick, efficient hash ring (consistent hashing)
  *
- * Copyright (C) 2014-2015,2021 Andras Radics
+ * Copyright (C) 2014-2015,2021,2023 Andras Radics
  * Licensed under the Apache License, Version 2.0
  *
  * - O(n log n) insert for any number of nodes, not O(n^2)
@@ -30,7 +30,7 @@ function ConsistentHash( options ) {
 
 ConsistentHash.prototype = {
     _nodes: null,               // list of node objects
-    _nodeKeys: null,            // list of control points for each node
+    _nodeKeys: null,            // list of control points for each node, in nodes order
     _keyMap: null,              // control point to node map
     // sorted keys array will be regenerated whenever set to falsy
     _keys: null,                // array of sorted control points
@@ -89,7 +89,6 @@ ConsistentHash.prototype = {
      */
     _buildKeyMap:
     function _buildKeyMap( n ) {
-        var pointslist = this._nodeKeys
         var nodeCount = 0
 
         // FIXME: generate the n*m control points, then distribute them among the m nodes
@@ -115,6 +114,7 @@ ConsistentHash.prototype = {
             var node = this._nodes[i]
             for (var j = 0; j < keys.length; j++) this._keyMap[keys[j]] = node
         }
+        this._needKeyMap = false;
     },
 
     /**
@@ -137,7 +137,6 @@ ConsistentHash.prototype = {
             this._keys = null
             this._needKeyMap = true
             this._keyMap = null
-            // TODO: deleting a node does not rebalance its uniform-distributed control points
             this.nodeCount -= 1
             this.keyCount -= keys.length
             ix -= 1

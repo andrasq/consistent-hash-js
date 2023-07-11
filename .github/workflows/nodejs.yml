@@ -16,7 +16,7 @@ jobs:
       - run: npm install
       - run: npm test
 
-      - name: coverage
+      - name: test coverage
         if: ${{ matrix.node == '5.8.0' }}
         run: |
           npm install -g nyc@8.4.0
