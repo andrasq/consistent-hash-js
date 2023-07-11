@@ -1,9 +1,7 @@
 consistent-hash
 ===============
-[![Build Status](https://github.com/andrasq/node-consistent-hash-js/actions/workflows/nodejs.yml/badge.svg)](https://github.com/andrasq/node-consistent-hash-js/actions/workflows/nodejs.yml)
-<!--
-[![Coverage Status](https://coveralls.io/repos/github/andrasq/node-consistent-hash-js/badge.svg?branch=master)](https://coveralls.io/github/andrasq/node-consistent-hash-js?branch=master)
--->
+[![Build Status](https://github.com/andrasq/consistent-hash-js/actions/workflows/nodejs.yml/badge.svg)](https://github.com/andrasq/consistent-hash-js/actions/workflows/nodejs.yml)
+[![Coverage Status](https://coveralls.io/repos/github/andrasq/consistent-hash-js/badge.svg?branch=master)](https://coveralls.io/github/andrasq/consistent-hash-js?branch=master)
 
 This is a dependency-free javascript-only implementation of
 [consistent hashing](https://en.wikipedia.org/wiki/Consistent_hashing) hash
