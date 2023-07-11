@@ -75,7 +75,6 @@ nodes around the hash ring.
 Todo
 ----
 
-- way to un-remove a node, ie add it back with its old control points
 - option to pass in the hash function to use
 - option to sort the new nodes before assigning control points
 

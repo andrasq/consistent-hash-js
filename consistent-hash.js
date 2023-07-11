@@ -171,6 +171,25 @@ ConsistentHash.prototype = {
         return nodes;
     },
 
+    /**
+     * Return the list of currently known nodes.
+     */
+    getNodes:
+    function getNodes( ) {
+        return this._nodes;
+    },
+
+    /**
+     * Return the list of control points assigned to the node.
+     */
+    getPoints:
+    function getPoints( node ) {
+        if (this._needKeyMap) this._buildKeyMap(this._weightDefault);
+
+        var ix = this._nodes.indexOf(node);
+        return ix < 0 ? undefined : this._nodeKeys[ix];
+    },
+
     // return the index of the node that handles resource name
     _locate:
     function _locate( name ) {

@@ -194,6 +194,24 @@ module.exports = {
             t.done();
         },
 
+        'getNodes should return the nodes': function(t) {
+            this.cut.add('a');
+            this.cut.add('b');
+            this.cut.add('a');
+            t.deepEqual(this.cut.getNodes(), ['a', 'b', 'a']);
+            t.done();
+        },
+
+        'getPoints should return the control points of the node': function(t) {
+            var hr = new ConsistentHash({ distribution: 'uniform' });
+            hr.add('a');
+            t.ok(!hr._keyMap['a']);
+            t.equal(hr.getPoints('a').length, hr._weightDefault);
+            t.equal(hr._keyMap[hr.getPoints('a')[0]], 'a');
+            t.strictEqual(hr.getPoints('nonesuch'), undefined);
+            t.done();
+        },
+
         'edge cases': {
             'throws if unable to make control points': function(t) {
                 var uut = new ConsistentHash({ range: 10 })
