@@ -1,3 +1,8 @@
+/**
+ * Copyright (C) 2015-2016,2021,2023 Andras Radics
+ * Licensed under the Apache License, Version 2.0
+ */
+
 var ConsistentHash = require('./consistent-hash.js')
 
 // format numbers in base 26 with digits 'a' .. 'z'
@@ -174,6 +179,19 @@ module.exports = {
             t.ok(!this.cut._nodeKeys[0])
             t.ok(!this.cut.get("a"))
             t.done()
+        },
+
+        'remove should be idempotent': function(t) {
+            this.cut.add('node-a');
+            this.cut.add('node-a');
+            this.cut.add('node-b');
+            this.cut.get('resourceName');
+            for (var i = 0; i < 2; i++) {
+                this.cut.remove('node-a');
+                t.equal(this.cut._nodes.length, 1);
+                t.equal(this.cut._nodes[0], 'node-b');
+            }
+            t.done();
         },
 
         'edge cases': {
