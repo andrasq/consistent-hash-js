@@ -1,5 +1,9 @@
 consistent-hash
 ===============
+[![Build Status](https://github.com/andrasq/node-consistent-hash-js/actions/workflows/nodejs.yml/badge.svg)](https://github.com/andrasq/node-consistent-hash-js/actions/workflows/nodejs.yml)
+<!--
+[![Coverage Status](https://coveralls.io/repos/github/andrasq/node-consistent-hash-js/badge.svg?branch=master)](https://coveralls.io/github/andrasq/node-consistent-hash-js?branch=master)
+-->
 
 This is a dependency-free javascript-only implementation of
 [consistent hashing](https://en.wikipedia.org/wiki/Consistent_hashing) hash
@@ -68,6 +72,14 @@ added with `add()`, or `null` if no nodes.
 If a `count` is specified, it returns an array of `count` distinct nodes;
 first the one that handles the named resource, then the following closest
 nodes around the hash ring.
+
+
+Todo
+----
+
+- way to un-remove a node, ie add it back with its old control points
+- option to pass in the hash function to use
+- option to sort the new nodes before assigning control points
 
 
 Changelog
