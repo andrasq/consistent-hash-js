@@ -36,8 +36,8 @@ Options:
 - `distribution` - node arrangement around the ring, for when no control points provided.
   One of `"random"` or `"uniform"`, default "random". 
 - `orderNodes` - function to use to define the order of newly added nodes that need
-  uniformly distributed control points assigned.  Default `undefined`, assign points
-  in as-added order.
+  uniformly distributed control points assigned.  The function gets as input an array of nodes,
+  and returns an array of nodes.  Default `undefined`, assign points in as-added order.
 
 The number of nodes supported is `range / weight`, default 2500.  For
 10x more nodes, use a wider range like 1,000,003 or a smaller weight like 4.
