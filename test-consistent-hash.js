@@ -80,7 +80,7 @@ module.exports = {
             hr.get('foo');
             t.equal(hr.getPoints('a').length, hr._weightDefault);
             // uniform distribution ignores the requested weight, and uses the default
-            t.equal(hr.getPoints('b').length, 40);
+            t.equal(hr.getPoints('b').length, hr._weightDefault);
             t.done();
         },
 
