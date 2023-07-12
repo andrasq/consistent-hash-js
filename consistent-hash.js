@@ -19,6 +19,7 @@ function ConsistentHash( options ) {
     this._nodeKeys = new Array()
     this._keyMap = {}
     this._keys = null
+    this._needKeyMap = false
     this.nodeCount = 0
     this.keyCount = 0
 
@@ -47,12 +48,12 @@ ConsistentHash.prototype = {
     function add( node, n, points ) {
         var i, key
         if (Array.isArray(points)) points = this._concat2(new Array(), points)
-        else if (this._uniform) { this._needKeyMap = true; this._keys = null; points = new Array(n || this._weightDefault) }
+        else if (this._uniform) { this._needKeyMap = true; points = new Array(n || this._weightDefault) }
         else points = this._makeControlPoints(n || this._weightDefault)
         this._nodes.push(node)
         this._nodeKeys.push(points)
         n = points.length
-        if (points[0] !== undefined) for (i=0; i<n; i++) this._keyMap[points[i]] = node
+        if (points[0] !== undefined) this._mapNodePoints(node, points)
         this._keys = null
         this.keyCount += n
         this.nodeCount += 1
@@ -85,24 +86,21 @@ ConsistentHash.prototype = {
     },
 
     /*
-     * distribute n control points around the ring for each node that needs it
+     * distribute n control points around the ring for each node that needs it, and update the keyMap
      */
     _buildKeyMap:
     function _buildKeyMap( n ) {
         var nodeCount = 0
-
-        // FIXME: generate the n*m control points, then distribute them among the m nodes
-        // Currently we ignore the per-node weight, and use the instance weight
 
         // count how many nodes need control points distributed
         var nodeCount = 0
         for (var i = 0; i < this.nodeCount; i++) if (this._nodeKeys[i][0] === undefined) nodeCount += 1
 
         // determine how many points we need and their spacing and position
+        // Currently we ignore the per-node weight, and use the instance weight
         var pointCount = nodeCount * this._weightDefault
         var step = this._range / pointCount
 
-        this._keyMap = {}
         for (var i = 0; i < this._nodeKeys.length; i++) {
             var keys = this._nodeKeys[i]
             if (keys[0] === undefined) {
@@ -110,10 +108,12 @@ ConsistentHash.prototype = {
                 keys.length = 0
                 for (var j = 0; j < this._weightDefault; j++) keys[j] = Math.round(offset + (step * nodeCount) * j)
             }
-            // also update the keyMap lookup mapping control points to nodes
-            var node = this._nodes[i]
-            for (var j = 0; j < keys.length; j++) this._keyMap[keys[j]] = node
         }
+
+        // rebuild the control points to nodes mapping
+        this._keyMap = {}
+        for (var i = 0; i < this._nodeKeys.length; i++) this._mapNodePoints(this._nodes[i], this._nodeKeys[i]);
+
         this._needKeyMap = false;
     },
 
@@ -129,9 +129,6 @@ ConsistentHash.prototype = {
             var keys = this._nodeKeys[ix]
             this._nodes[ix] = this._nodes[this._nodes.length - 1]
             this._nodes.length -= 1
-            if (this._keyMap) {
-                for (var j = 0; j < this._nodeKeys[ix].length; j++) this._keyMap[this._nodeKeys[ix][j]] = undefined;
-            }
             this._nodeKeys[ix] = this._nodeKeys[this._nodeKeys.length - 1]
             this._nodeKeys.length -= 1
             this._keys = null
@@ -155,6 +152,7 @@ ConsistentHash.prototype = {
         return this._keyMap[this._keys[index]]
     },
 
+    // return the first n distinct nodes in the hash ring after name
     _getMany:
     function _getMany( name, n ) {
         if (!this.keyCount) return null
@@ -291,7 +289,23 @@ ConsistentHash.prototype = {
         // note: duplicate keys are not filtered out, but should work ok
         keys.sort(function(a,b){ return a - b })
         return this._keys = keys
+    },
+
+    // map the control points to point to the node
+    _mapNodePoints:
+    function _mapNodePoints( node, points ) {
+        var len = points.length, map = this._keyMap
+        for (var i = 0; i < len; i++) map[points[i]] = node
+    },
+
+/**
+    // remove the array element at position ix and close the gap (adapted from qibl)
+    _removeByIndex( array, ix ) {
+        if (ix < 0 || ix >= array.lenth) return
+        for ( ; ix < array.length - 1; ix++) array[ix] = array[ix + 1]
+        array.pop()
     }
+**/
 }
 
 module.exports = ConsistentHash
