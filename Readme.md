@@ -35,6 +35,9 @@ Options:
 - `weight` - the default number of control points to create for each node added, default 40.
 - `distribution` - node arrangement around the ring, for when no control points provided.
   One of `"random"` or `"uniform"`, default "random". 
+- `orderNodes` - function to use to define the order of newly added nodes that need
+  uniformly distributed control points assigned.  Default `undefined`, assign points
+  in as-added order.
 
 The number of nodes supported is `range / weight`, default 2500.  For
 10x more nodes, use a wider range like 1,000,003 or a smaller weight like 4.
@@ -75,6 +78,14 @@ If a `count` is specified, it returns an array of `count` distinct nodes;
 first the one that handles the named resource, then the following closest
 nodes around the hash ring.
 
+### hr.getNodes( )
+
+Return an array of all the nodes currently in this hash ring, in no particular order.
+
+### hr.getPoints( node )
+
+Return the control points assigned to the `node`.
+
 
 Todo
 ----
@@ -86,6 +97,7 @@ Todo
 Changelog
 ---------
 
+- 1.2.0 - new orderNodes option, new methods getNodes, getPoints
 - 1.1.2 - clear _needKeyMap once computed, new undocumented getNodes, getPoints
 - 1.1.1 - do not access unset _keyMap
 - 1.1.0 - `options.distribution`, fix multi-node get() that wraps around 0

@@ -27,6 +27,7 @@ function ConsistentHash( options ) {
     if (options.range) this._range = options.range
     if (options.controlPoints || options.weight) this._weightDefault = options.controlPoints || options.weight
     if (options.distribution === 'uniform') this._uniform = true
+    if (options.orderNodes) this._orderNodes = options.orderNodes
 }
 
 ConsistentHash.prototype = {
@@ -98,10 +99,12 @@ ConsistentHash.prototype = {
         var newNodePos = Object.keys(newNodes)
         var newNodeCount = newNodePos.length
 
-        // TODO: optionally reorder the new nodes to make control point assignment deterministic
+        // optionally reorder the new nodes to make control point assignment deterministic
         // For best results duplicate nodes should be merged, with proportionately more control points
-        // var newNodesSorted = this._orderNodes(newNodesPos.map(function(ix) { return newNodes[ix] }))
-        // for (var i = 0; i < newNodePos.length; i++) this._nodes[newNodePos[i]] = newNodesSorted[i]
+        if (this._orderNodes) {
+            var newNodesSorted = this._orderNodes(newNodePos.map(function(ix) { return newNodes[ix] }))
+            for (var i = 0; i < newNodePos.length; i++) this._nodes[newNodePos[i]] = newNodesSorted[i]
+        }
 
         // determine how many points we need and their spacing and position
         // Currently we ignore the per-node weight, and use the instance weight

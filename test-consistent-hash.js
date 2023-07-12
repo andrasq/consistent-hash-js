@@ -378,6 +378,39 @@ module.exports = {
             for (var k in uut._keyMap) t.notEqual(uut._keyMap[k], 'node2', 'node2 was deleted')
             t.done()
         },
+
+        'should assign uniformly distributed points in node-add order': function(t) {
+            var hr = new ConsistentHash({ distribution: 'uniform', weight: 100 });
+            hr.add('a');
+            hr.add('b');
+            hr.get('foo');
+            t.deepEqual(hr.getNodes(), ['a', 'b']);
+
+            // points assigned in node order
+            t.ok(hr.getPoints('a')[0] < hr.getPoints('b')[0]);
+
+            // points distributed so no two points have the same node adjacent
+            // _keys are already in sorted numeric order
+            var allPoints = hr._keys;
+            for (var i = 1; i < allPoints.length; i++) t.notEqual(hr._keyMap[allPoints[i]], hr._keyMap[allPoints[i - 1]]);
+            t.done();
+        },
+
+        'should optionally assign points in sorted order': function(t) {
+            var hr = new ConsistentHash({
+                distribution: 'uniform', weight: 4,
+                orderNodes: function(nodes) { return nodes.sort() } });
+            hr.add('c');
+            hr.add('b');
+            hr.add('a');
+            hr.get('foo');
+            t.deepEqual(hr.getNodes(), ['a', 'b', 'c']);
+            t.ok(hr.getPoints('a')[0] < hr.getPoints('b')[0]);
+            t.ok(hr.getPoints('a')[1] < hr.getPoints('b')[1]);
+            t.ok(hr.getPoints('b')[0] < hr.getPoints('c')[0]);
+            t.ok(hr.getPoints('b')[1] < hr.getPoints('c')[1]);
+            t.done();
+        },
     },
 
     'timings': {
