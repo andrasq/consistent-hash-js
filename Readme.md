@@ -30,7 +30,8 @@ API
 
 Options:
 
-- `range` - hash ring control point modulo range, default 100003.
+- `range` - hash ring control point modulo range, default 100003.  The range should be an
+  odd number relatively prime to the number of nodes.
 - `weight` - the default number of control points to create for each node added, default 40.
 - `distribution` - node arrangement around the ring, for when no control points provided.
   One of `"random"` or `"uniform"`, default "random". 
@@ -50,6 +51,9 @@ resources will be proportionate to its weight.  The default weight is 40,
 and control points are randomly created between 0 and range - 1.  Returns `hr`.
 
 Adding the same node more than once increases its weight.
+
+Note that with uniform distribution of control points each added node will use the default weight,
+and adding a node twice will double its weight.
 
 - `weight` - how many resource instances this node should manage compared to the other nodes (default 1).
   Higher weights will be assigned more resources.  Three nodes A, B and C with
@@ -82,6 +86,7 @@ Todo
 Changelog
 ---------
 
+- 1.1.2 - clear _needKeyMap once computed, new undocumented getNodes, getPoints
 - 1.1.1 - do not access unset _keyMap
 - 1.1.0 - `options.distribution`, fix multi-node get() that wraps around 0
 - 1.0.2 - 2016 version
