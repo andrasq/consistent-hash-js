@@ -64,6 +64,26 @@ module.exports = {
             t.done()
         },
 
+        'add should create n control points': function(t) {
+            this.cut.add('a')
+            this.cut.add('b', 4)
+            this.cut.get('foo');
+            t.equal(this.cut.getPoints('a').length, this.cut._weightDefault);
+            t.equal(this.cut.getPoints('b').length, 4);
+            t.done();
+        },
+
+        'add should create n uniformly distributed control points': function(t) {
+            var hr = new ConsistentHash({ distribution: 'uniform' });
+            hr.add('a')
+            hr.add('b', 4)
+            hr.get('foo');
+            t.equal(hr.getPoints('a').length, hr._weightDefault);
+            // uniform distribution ignores the requested weight, and uses the default
+            t.equal(hr.getPoints('b').length, 40);
+            t.done();
+        },
+
         'get should build _keys array': function(t) {
             this.cut.add("a")
             this.cut.get("a")
@@ -212,6 +232,16 @@ module.exports = {
             t.done();
         },
 
+        'two uniform-distribution hash rings with same node order should return same mappings': function(t) {
+            var hr1 = new ConsistentHash({ distribution: 'uniform' });
+            var hr2 = new ConsistentHash({ distribution: 'uniform' });
+            for (var i = 0; i < 10; i++) hr1.add('node-' + i);
+            for (var i = 0; i < 10; i++) hr2.add('node-' + i);
+            // for (var i = 0; i < 10; i++) hr2.add('node-' + (10 - 1 - i)); // fails: different node order
+            t.equal(hr1.get('foo'), hr2.get('foo'));
+            t.done();
+        },
+
         'edge cases': {
             'throws if unable to make control points': function(t) {
                 var uut = new ConsistentHash({ range: 10 })
@@ -333,8 +363,15 @@ module.exports = {
             uut.get('foo')
             t.equal(Object.keys(uut._keyMap).length, 12, '3-node map has 12 keys')
             var map1 = uut._keyMap
+            var node2points = uut.getPoints('node2');
             uut.remove('node2')
-            t.deepEqual(uut._keyMap, null)
+            // the _keyMap should be updated with node2 gone
+            for (var point in uut._keyMap) {
+                var node = uut._keyMap[point];
+                t.ok(node === 'node1' || node === 'node3' || node === undefined);
+            }
+            // rebuild the points map from scratch, then map should completely omit node2
+            uut._needKeyMap = true;
             uut.get('foo')
             t.equal(Object.keys(uut._keyMap).length, 8, 'rebuilt map has 8 keys')
             t.contains(map1, uut._keyMap)

@@ -92,25 +92,33 @@ ConsistentHash.prototype = {
     function _buildKeyMap( n ) {
         var nodeCount = 0
 
-        // count how many nodes need control points distributed
-        var nodeCount = 0
-        for (var i = 0; i < this.nodeCount; i++) if (this._nodeKeys[i][0] === undefined) nodeCount += 1
+        // count how many new nodes need uniformly distributed control points assigned
+        var newNodes = {}
+        for (var i = 0; i < this._nodes.length; i++) if (this._nodeKeys[i][0] === undefined) newNodes[i] = this._nodes[i]
+        var newNodePos = Object.keys(newNodes)
+        var newNodeCount = newNodePos.length
+
+        // TODO: optionally reorder the new nodes to make control point assignment deterministic
+        // For best results duplicate nodes should be merged, with proportionately more control points
+        // var newNodesSorted = this._orderNodes(newNodesPos.map(function(ix) { return newNodes[ix] }))
+        // for (var i = 0; i < newNodePos.length; i++) this._nodes[newNodePos[i]] = newNodesSorted[i]
 
         // determine how many points we need and their spacing and position
         // Currently we ignore the per-node weight, and use the instance weight
-        var pointCount = nodeCount * this._weightDefault
+        var pointCount = newNodeCount * this._weightDefault
         var step = this._range / pointCount
 
-        for (var i = 0; i < this._nodeKeys.length; i++) {
-            var keys = this._nodeKeys[i]
-            if (keys[0] === undefined) {
-                var offset = step * i + step / 2
-                keys.length = 0
-                for (var j = 0; j < this._weightDefault; j++) keys[j] = Math.round(offset + (step * nodeCount) * j)
-            }
+        // uniformly distribute control points among the new nodes
+        // NOTE: the new points might overlap existing control points, not checked
+        for (var i = 0; i < newNodePos.length; i++) {
+            var keys = this._nodeKeys[newNodePos[i]]
+            keys.length = this._weightDefault
+            var offset = step * i + step / 2
+            for (var j = 0; j < this._weightDefault; j++) keys[j] = Math.round(offset + (step * newNodeCount) * j)
         }
 
         // rebuild the control points to nodes mapping
+        // TODO: do not manually rebuild the _keyMap, punt to _buildKeys that will be needed anyway
         this._keyMap = {}
         for (var i = 0; i < this._nodeKeys.length; i++) this._mapNodePoints(this._nodes[i], this._nodeKeys[i]);
 
@@ -277,6 +285,7 @@ ConsistentHash.prototype = {
     },
 
     // regenerate the sorted keys array
+    // TODO: also rebuild the _keyMap points-to-nodes lookup
     _buildKeys:
     function _buildKeys( ) {
         var i, j, nodeKeys, keys = new Array()
