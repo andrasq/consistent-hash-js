@@ -47,7 +47,7 @@ Properties:
 - `nodeCount` - number of nodes on the hash ring
 - `keyCount` - number of control points (tokens) around the hash ring
 
-### hr.add( node [,weight] [,points] )
+### hr.add( node [,weight [,points]] )
 
 Register a node as also managing the resource.  The node's share of the
 resources will be proportionate to its weight.  The default weight is 40,
@@ -58,10 +58,13 @@ Adding the same node more than once increases its weight.
 Note that with uniform distribution of control points each added node will use the default weight,
 and adding a node twice will double its weight.
 
-- `weight` - how many resource instances this node should manage compared to the other nodes (default 1).
+- `weight` - controls how many resource instances this node should manage vs the other nodes.
   Higher weights will be assigned more resources.  Three nodes A, B and C with
   weights 1, 2 and 3 will each handle 1/6, 1/3 and 1/2 of the resources, respectively.
-- `points` - the array of control points to use for this node.
+  The default weight for each node is the one configured into the instance, normally 40.
+- `points` - the array of control points to use for this node.  This setting allows for very
+  low-level technical control over resource distribution.  If not provided, control points are
+  generated either randomly, or, if `{distribution: 'uniform'}` is specified, reproducibly.
 
 ### hr.remove( node )
 
@@ -91,7 +94,6 @@ Todo
 ----
 
 - option to pass in the hash function to use
-- option to sort the new nodes before assigning control points
 
 
 Changelog
