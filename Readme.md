@@ -38,7 +38,7 @@ Options:
 - `orderNodes` - function to use to define the order of newly added nodes that need
   uniformly distributed control points assigned.  The function gets as input an array of nodes,
   and returns an array of nodes.  Default `undefined`, assign points in as-added order.
-- `nodes` - an array with nodes to add.  This is for convenience, it just adds the nodes
+- `nodes` - an array of strings with nodes to add.  This is for convenience, it just adds the nodes
   one at a time with `this.add()`.  Default is none.
 
 The number of nodes supported is `range / weight`, default 2500.  For
