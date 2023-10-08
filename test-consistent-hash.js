@@ -38,6 +38,13 @@ module.exports = {
     },
 
     'class': {
+        'constructor should add initial points': function(t) {
+            var hr = new ConsistentHash({ nodes: ['a', 'b', 'c', 'd'] });
+            hr.add('e');
+            t.deepEqual(hr.getNodes(), ['a', 'b', 'c', 'd', 'e']);
+            t.done();
+        },
+
         'add should associate control points with the node': function(t) {
             this.cut.add("a")
             t.ok(this.cut._nodeKeys[0].length > 0)
@@ -239,6 +246,19 @@ module.exports = {
             for (var i = 0; i < 10; i++) hr2.add('node-' + i);
             // for (var i = 0; i < 10; i++) hr2.add('node-' + (10 - 1 - i)); // fails: different node order
             t.equal(hr1.get('foo'), hr2.get('foo'));
+            t.done();
+        },
+
+        'multiple uniform-distribution hash rings should return the same node': function(t) {
+            var first;
+            var ring = ['aaaa', 'bbbb', 'cccc'];
+            for (var i = 0; i < 100; i++) {
+                var hr = new ConsistentHash({ distribution: 'uniform' });
+                for (var n = 0; n < ring.length; n++) hr.add(ring[n]);
+                first = first || hr.get('123123123');
+                t.strictEqual(hr.get('123123123'), first);
+            }
+            t.ok(first);
             t.done();
         },
 

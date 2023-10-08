@@ -28,6 +28,8 @@ function ConsistentHash( options ) {
     if (options.controlPoints || options.weight) this._weightDefault = options.controlPoints || options.weight
     if (options.distribution === 'uniform') this._uniform = true
     if (options.orderNodes) this._orderNodes = options.orderNodes
+    // nb: calling methods on `this` from inside the constructor might not be supported in some browsers
+    if (Array.isArray(options.nodes)) addNodesArray(this, options.nodes);
 }
 
 ConsistentHash.prototype = {
@@ -236,7 +238,7 @@ ConsistentHash.prototype = {
                 h ^= (g >>> 24)         // xor high 4 bits into low byte
             }
         }
-        // for well distributed input, h has a good distribution in the lsb`s
+        // for well distributed input, h has a good distribution in the lsbs
         // but for correlated input eg /a[0-9]+/ it is skewed and caller must fix
         // Taking h % prime seems to work well, esp for smallish primes (1009, 10007)
         // Conversely, taking h % 2^N (N>3) results in a very skewed distribution.
@@ -318,6 +320,10 @@ ConsistentHash.prototype = {
         array.pop()
     }
 **/
+}
+
+function addNodesArray( hashRing, nodes ) {
+    for (var i = 0; i < nodes.length; i++) hashRing.add(nodes[i]);
 }
 
 module.exports = ConsistentHash
