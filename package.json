@@ -1,26 +1,14 @@
 {
   "name": "consistent-hash",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "js consistent hash ring",
   "license": "Apache-2.0",
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/andrasq/consistent-hash-js"
-  },
+  "repository": { "type": "git", "url": "git://github.com/andrasq/consistent-hash-js" },
   "main": "consistent-hash.js",
-  "author": {
-    "name": "Andras",
-    "url": "http://github.com/andrasq"
-  },
-  "keywords": [
-    "Andras",
-    "consistent",
-    "hash",
-    "hashing",
-    "hash ring"
-  ],
-  "files": ["LICENSE", "Readme.md", "consistent-hash.js", "test-consistent-hash.js"],
+  "author": { "name": "Andras", "url": "http://github.com/andrasq" },
+  "keywords": [ "Andras", "consistent", "hash", "hashing", "hash ring" ],
   "readme": "see Readme.md in the repo",
+  "files": ["LICENSE", "Readme.md", "consistent-hash.js", "test-consistent-hash.js"],
 
   "dependencies": {
   },
